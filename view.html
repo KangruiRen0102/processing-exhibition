@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Processing Code Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <script src="data.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            margin: 20px;
+            font-size: 2.5em;
+        }
+        #sketch-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        canvas {
+            display: block; /* 避免 canvas 产生空白间隙 */
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Processing Code Viewer</h1>
+    <div id="sketch-container"></div> <!-- 容器用于挂载画布 -->
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id");
+
+        if (id !== null && works[id]) {
+            const work = works[id];
+
+            // 只清理旧的空白 canvas
+            const emptyCanvases = document.querySelectorAll('canvas');
+            emptyCanvases.forEach(canvas => {
+                if (canvas.width === 0 || canvas.height === 0) {
+                    canvas.remove();
+                }
+            });
+
+            // 在容器中加载新的 p5.js 代码
+            const script = document.createElement("script");
+            script.src = work.code;
+
+            script.onerror = () => {
+                document.body.innerHTML = "<h1>代码文件加载失败！</h1>";
+                console.error("错误: 无法加载代码文件", work.code);
+            };
+
+            document.body.appendChild(script);
+        } else {
+            document.body.innerHTML = "<h1>作品不存在！</h1>";
+            console.error("错误: 无法加载作品，ID:", id);
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
