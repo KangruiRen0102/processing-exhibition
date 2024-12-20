@@ -2,17 +2,35 @@ int numCircles = 500;  // Number of chaotic circles
 int glowLayers = 50;   // Layers for the glowing effect
 int numParticles = 100; // Number of particles for hope
 int maxDepth = 10;     // Maximum recursion depth for plant growth
+float treeGrowth = 0;  // Progress of the tree growth
+boolean isGrowing = true; // Control for tree growth
 
 void setup() {
   size(800, 800);  // Set canvas size
   background(0);   // Black background
-  noLoop();        // Draw only once
+  frameRate(30);   // Set frame rate for interactivity
 }
 
 void draw() {
-  drawChaos();     // Background: Chaos
-  drawHope();      // Middle layer: Hope
-  drawGrowth(width / 2, height - 100, -90, 150, 10, maxDepth); // Foreground: Growth
+  background(0);    // Clear the screen each frame
+  drawChaos();      // Background: Chaos
+  drawHope();       // Middle layer: Hope
+  drawGrowth(width / 2, height - 100, -90, 150, 10, (int)treeGrowth); // Foreground: Growth
+
+  if (isGrowing) {
+    treeGrowth += 0.1; // Gradually grow the tree
+    if (treeGrowth > maxDepth) {
+      treeGrowth = maxDepth;
+      isGrowing = false; // Stop growth when fully grown
+    }
+  }
+}
+
+void keyPressed() {
+  if (key == 'r' || key == 'R') {
+    treeGrowth = 0; // Reset tree growth
+    isGrowing = true;
+  }
 }
 
 void drawChaos() {

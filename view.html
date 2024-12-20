@@ -8,29 +8,64 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
             margin: 0;
-            background-color: #f4f4f9;
-            color: #333;
+            background: linear-gradient(135deg, #1b2735, #090a0f);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 60px; /* 增加顶部和底部空间 */
         }
-        h1 {
-            margin: 20px;
-            font-size: 2.5em;
+        #content {
+            position: relative;
+            width: 100%;
+            max-width: 1500px;
+            height: 10px;
+        }
+        #description {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            max-width: 200px;
+            color: #00c8ff;
+            font-family: 'Roboto Mono', monospace;
+            line-height: 1.5;
+            letter-spacing: 0.05em;
+            font-size: 1rem;
         }
         #sketch-container {
+            position: absolute;
+            top: 100px;
+            left: 300px;
+            width: 600px;
+            height: 400px;
             display: flex;
             justify-content: center;
-            margin-top: 20px;
+            align-items: center;
+        }
+        #instruction {
+            position: absolute;
+            top: 10px;
+            left: 1200px;
+            max-width: 300px;
+            color: #00c8ff;
+            font-family: 'Roboto Mono', monospace;
+            line-height: 1.5;
+            letter-spacing: 0.05em;
+            font-size: 1rem;
         }
         canvas {
-            display: block; /* 避免 canvas 产生空白间隙 */
-            margin: auto;
+            display: block;
+            margin: 0; /* 避免 canvas 产生间隙 */
         }
     </style>
 </head>
 <body>
-    <h1>Processing Code Viewer</h1>
-    <div id="sketch-container"></div> <!-- 容器用于挂载画布 -->
+    <div id="content">
+        <div id="description"></div> <!-- 用于显示作品描述 -->
+        <div id="sketch-container"></div> <!-- 容器用于挂载画布 -->
+        <div id="instruction"></div> <!-- 用于显示操作说明 -->
+    </div>
 
     <script>
         const params = new URLSearchParams(window.location.search);
@@ -38,6 +73,18 @@
 
         if (id !== null && works[id]) {
             const work = works[id];
+
+            // 显示描述和操作说明
+            const descriptionDiv = document.getElementById("description");
+            const instructionDiv = document.getElementById("instruction");
+
+            if (work.description) {
+                descriptionDiv.innerHTML = `<h2>Description</h2><p>${work.description}</p>`;
+            }
+
+            if (work.instruction) {
+                instructionDiv.innerHTML = `<h2>Instructions</h2><p>${work.instruction}</p>`;
+            }
 
             // 只清理旧的空白 canvas
             const emptyCanvases = document.querySelectorAll('canvas');
@@ -64,8 +111,5 @@
     </script>
 </body>
 </html>
-
-
-
 
 

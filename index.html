@@ -2,112 +2,156 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Processing Exhibition - Debug Mode</title>
+    <title>Processing Exhibition</title>
     <script src="data.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             margin: 0;
-            background-color: #f4f4f9;
+            background-color: #1b2735;
+            color: #fff;
+            padding: 0 60px; /* 增大左右边距 */
         }
         h1 {
             margin: 20px;
             font-size: 2.5em;
-            color: #333;
+            color: #00d4ff;
+            text-shadow: 0 0 10px #00d4ff, 0 0 20px #00d4ff;
         }
         .gallery {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); /* 自适应网格布局 */
+            gap: 30px;
+            padding: 40px 0;
         }
         .thumbnail {
             position: relative;
-            text-align: center;
-            width: 220px;
+            width: 100%;
+            cursor: pointer;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out;
+            background: rgba(255, 255, 255, 0.1); /* 防止图片未加载时的背景色 */
+        }
+        .thumbnail:hover {
+            transform: scale(1.1);
         }
         .thumbnail img {
-            width: 200px;
-            height: 200px;
-            object-fit: cover;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            aspect-ratio: 1 / 1; /* 强制图片正方形 */
+            object-fit: cover; /* 确保图片不会拉伸 */
+            border-radius: 10px; /* 图片圆角 */
         }
-        .thumbnail p {
-            margin: 5px 0 0;
-            font-size: 14px;
-            font-weight: bold;
-            color: #555;
+        .author {
+            background: rgba(20, 20, 20, 0.9);
+            padding: 10px;
+            font-size: 1.2rem;
+            font-family: 'Orbitron', sans-serif;
+            color: #44aaff;
+            text-shadow: 0 0 5px #44aaff, 0 0 10px #3377cc;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 10px 10px; /* 卡片底部圆角 */
         }
-        .error {
-            color: red;
-            font-size: 12px;
+        /* 独立的透明打字层 */
+        .intelligent-display {
+            position: fixed; /* 独立层，悬浮于整个页面 */
+            top: 50%; /* 居中 */
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0); /* 初始隐藏 */
+            width: 400px; /* 比图片更大 */
+            height: 300px;
+            background: rgba(0, 0, 0, 0.7); /* 半透明背景 */
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.7);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #00ffcc;
+            font-family: 'Orbitron', 'Courier New', monospace;
+            font-size: 18px;
+            line-height: 1.8;
+            text-align: center;
+            z-index: 1000; /* 显示在最顶层 */
+            pointer-events: none; /* 禁止鼠标交互 */
+        }
+        .thumbnail:hover + .intelligent-display {
+            transform: translate(-50%, -50%) scale(1); /* 鼠标悬停时显示透明层 */
         }
     </style>
 </head>
 <body>
-    <h1>Processing Exhibition - Debug Mode</h1>
+    <h1>Processing Exhibition</h1>
     <div class="gallery" id="gallery"></div>
+
+    <!-- 独立的打字层 -->
+    <div class="intelligent-display" id="display"></div>
 
     <script>
         const gallery = document.getElementById("gallery");
+        const display = document.getElementById("display");
+        const typeSound = new Audio("sounds/type-sound.mp3");
 
         works.forEach((work, index) => {
             const div = document.createElement("div");
             div.className = "thumbnail";
 
+            // 图片元素
             const img = document.createElement("img");
             img.src = work.image;
             img.alt = work.name;
 
-            const caption = document.createElement("p");
-            caption.textContent = work.name;
-
-            const errorDiv = document.createElement("div");
-            errorDiv.className = "error";
-
-            // 检查图片文件
-            fetch(work.image)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`图片文件不存在 (${response.status})`);
-                    }
-                })
-                .catch(error => {
-                    errorDiv.innerHTML += `❌ 图片错误: ${error.message}<br>`;
-                    img.src = "placeholder.png"; // 替换为占位符图片
-                });
-
-            // 检查代码文件是否存在
-            fetch(work.code)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`代码文件不存在 (${response.status})`);
-                    }
-                })
-                .catch(error => {
-                    errorDiv.innerHTML += `❌ 代码错误: ${error.message}<br>`;
-                });
-
-            // 点击跳转到 view.html
-            div.onclick = () => {
+            // 点击图片跳转功能
+            img.onclick = () => {
                 window.location.href = `view.html?id=${index}`;
             };
 
+            // 作者名字部分
+            const authorDiv = document.createElement("div");
+            authorDiv.className = "author";
+            authorDiv.textContent = work.name;
+
+            let textIndex = 0;
+            let textInterval;
+
+            div.addEventListener("mouseenter", () => {
+                // 显示打字层并播放音效
+                display.style.transform = "translate(-50%, -50%) scale(1)";
+                display.textContent = ""; // 清空之前的文字
+                textIndex = 0;
+                typeSound.loop = true; // 确保音效循环播放
+                typeSound.currentTime = 0; // 确保音效从头播放
+                typeSound.play(); // 开始播放音效
+                textInterval = setInterval(() => {
+                    if (textIndex < work.thematic_sentence.length) {
+                        display.textContent += work.thematic_sentence[textIndex++];
+                    } else {
+                        clearInterval(textInterval);
+                        typeSound.loop = false; // 停止循环
+                        typeSound.pause(); // 停止音效
+                    }
+                }, 50);
+            });
+
+            div.addEventListener("mouseleave", () => {
+                clearInterval(textInterval);
+                typeSound.loop = false; // 确保音效不再循环播放
+                typeSound.pause(); // 确保音效停止
+                typeSound.currentTime = 0; // 重置音效时间
+                display.style.transform = "translate(-50%, -50%) scale(0)"; // 隐藏打字层
+            });
+
+            // 组合卡片内容
             div.appendChild(img);
-            div.appendChild(caption);
-            div.appendChild(errorDiv);
+            div.appendChild(authorDiv);
             gallery.appendChild(div);
         });
     </script>
 </body>
 </html>
-
-
 
 
 
