@@ -14,7 +14,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 60px 60px; /* 增加顶部和底部空间 */
+            padding: 60px 60px;
         }
         #content {
             position: relative;
@@ -22,49 +22,17 @@
             max-width: 1500px;
             height: 10px;
         }
-        #description {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            max-width: 200px;
-            color: #00c8ff;
-            font-family: 'Roboto Mono', monospace;
-            line-height: 1.5;
-            letter-spacing: 0.05em;
-            font-size: 1rem;
-        }
-        #sketch-container {
-            position: absolute;
-            top: 100px;
-            left: 300px;
-            width: 600px;
-            height: 400px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #instruction {
-            position: absolute;
-            top: 10px;
-            left: 1200px;
-            max-width: 300px;
-            color: #00c8ff;
-            font-family: 'Roboto Mono', monospace;
-            line-height: 1.5;
-            letter-spacing: 0.05em;
-            font-size: 1rem;
-        }
-        canvas {
-            display: block;
-            margin: 0; /* 避免 canvas 产生间隙 */
-        }
+        #description { position: fixed; top: 40px; left: var(--description-left, 100px); right: auto; margin-right: calc(100vw - 600px - 100px); /* 确保描述不与 canvas 水平交叉 */ max-width: 300px; color: #00c8ff; font-family: 'Roboto Mono', monospace; line-height: 1.5; letter-spacing: 0.05em; font-size: 1rem; overflow-y: auto; max-height: calc(100vh - 120px); /* 确保不会和 canvas 重叠 */ }
+        #sketch-container { position: relative; top: 150px; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; display: flex; justify-content: center; align-items: center; }
+        #instruction { position: fixed; top: 40px; left: 800px; right: var(--instruction-right, 100px); margin-left: auto; max-width: 300px; color: #00c8ff; font-family: 'Roboto Mono', monospace; line-height: 1.5; letter-spacing: 0.05em; font-size: 1rem; overflow-y: auto; max-height: calc(100vh - 120px); /* 确保不会和 canvas 重叠 */ }
+        canvas { display: block; margin: 0; width: 971px !important; height: 600px !important; /* 固定 canvas 的尺寸 */ }
     </style>
 </head>
 <body>
     <div id="content">
-        <div id="description"></div> <!-- 用于显示作品描述 -->
-        <div id="sketch-container"></div> <!-- 容器用于挂载画布 -->
-        <div id="instruction"></div> <!-- 用于显示操作说明 -->
+        <div id="description"></div>
+        <div id="sketch-container"></div>
+        <div id="instruction"></div>
     </div>
 
     <script>
@@ -86,14 +54,6 @@
                 instructionDiv.innerHTML = `<h2>Instructions</h2><p>${work.instruction}</p>`;
             }
 
-            // 只清理旧的空白 canvas
-            const emptyCanvases = document.querySelectorAll('canvas');
-            emptyCanvases.forEach(canvas => {
-                if (canvas.width === 0 || canvas.height === 0) {
-                    canvas.remove();
-                }
-            });
-
             // 在容器中加载新的 p5.js 代码
             const script = document.createElement("script");
             script.src = work.code;
@@ -111,5 +71,8 @@
     </script>
 </body>
 </html>
+
+
+
 
 
