@@ -69,6 +69,22 @@
                 instructionDiv.innerHTML = `<h2>Instructions</h2><p>${work.instruction}</p>`;
             }
 
+            // ----------------------------
+            // **只在需要时处理本地图片逻辑**
+            // ----------------------------
+            // 如果某个作品对象里定义了多张图片：
+            //    works[id].images = ["images/bg.jpg", "images/icon.png"]
+            // 就把它挂到全局
+            if (work.images && Array.isArray(work.images)) {
+                window.localImages = work.images;
+            }
+
+            // 如果只有单张图片：
+            //    works[id].image = "images/bg.jpg"
+            if (work.image) {
+                window.localImage = work.image;
+            }
+
             // Load sketch code
             const script = document.createElement("script");
             script.src = work.code;
@@ -86,8 +102,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
