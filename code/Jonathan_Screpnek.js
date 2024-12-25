@@ -1,3 +1,4 @@
+
 // Array to store all the particles (treated as shapes)
 let particles = [];
 

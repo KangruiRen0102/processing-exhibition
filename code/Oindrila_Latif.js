@@ -1,11 +1,12 @@
 let numParticles = 600; // Number of particles
 let particles = []; // Array to hold all particles
 let mouseInteracted = false; // Track mouse interaction
-let time = 0; // Time-based variable for animation effects
+let timeVar = 0; // Time-based variable for animation effects
 
 function setup() {
   createCanvas(1024, 768, WEBGL); // Enable 3D rendering
   colorMode(HSB, 360, 255, 255, 255); // HSB color mode for gradients
+  noStroke(); // Disable stroke globally
   for (let i = 0; i < numParticles; i++) {
     particles.push(new Particle());
   }
@@ -13,15 +14,26 @@ function setup() {
 
 function draw() {
   background(0); // Clear screen with black
+  
+  // Set up the 3D view
+  push();
   translate(0, 0, -600); // Center and adjust the view
-  rotateY(frameCount * 0.001); // Subtle rotation for dynamic 3D visualization
-
-  // Draw layered aurora
+  rotateY(frameCount * 0.002); // Increased rotation speed for better visibility
+  
+  // Set blend mode for aurora
+  blendMode(ADD);
+  
+  // Draw aurora layers
   for (let layer = -10; layer <= 10; layer++) {
     let zOffset = layer * 80; // Spacing between layers
     drawAuroraLayer(zOffset);
   }
-
+  
+  // Reset blend mode to normal
+  blendMode(BLEND);
+  
+  pop();
+  
   // Update and draw particles
   for (let p of particles) {
     p.update();
@@ -33,28 +45,33 @@ function draw() {
     drawInteractiveEffect();
   }
 
-  time += 0.01; // Increment time for dynamic color changes
+  timeVar += 0.01; // Increment time for dynamic color changes
 }
 
 // Function to draw aurora layers
 function drawAuroraLayer(zOffset) {
   beginShape(TRIANGLE_STRIP);
-  for (let x = -width; x <= width; x += 6) {
-    let y1 = noise(x * 0.02, frameCount * 0.005) * 400 - 200;
-    let y2 = noise(x * 0.02, frameCount * 0.005 + 1000) * 400 - 200;
+  for (let x = -width / 2; x <= width / 2; x += 6) { // Adjusted x range for WEBGL
+    // Generate dynamic y positions using noise
+    let y1 = noise(x * 0.02, timeVar * 0.005) * 400 - 200;
+    let y2 = noise(x * 0.02, timeVar * 0.005 + 1000) * 400 - 200;
 
-    let hue = map(x, -width, width, 160, 280) + sin(time * 0.1 + x * 0.02) * 30;
+    // Dynamic hue shifting based on position and time
+    let hueVal = map(x, -width / 2, width / 2, 160, 280) + sin(timeVar * 0.1 + x * 0.02) * 30;
+    hueVal = (hueVal + 360) % 360; // Ensure hue is within 0-360
 
-    fill(hue, 200, 255, 180); // Top vertex color
+    // Top vertex color
+    fill(hueVal, 200, 255, 180);
     vertex(x, y1, zOffset);
-
-    fill(hue, 150, 200, 120); // Bottom vertex color
+    
+    // Bottom vertex color with slight transparency and depth adjustment
+    fill(hueVal, 150, 200, 120);
     vertex(x, y2, zOffset - 80);
   }
   endShape();
 }
 
-// Mouse interaction toggles particle effect
+// Mouse interaction toggles interactive effect
 function mousePressed() {
   mouseInteracted = !mouseInteracted;
 }
@@ -62,6 +79,7 @@ function mousePressed() {
 // Function to draw interactive circular effect
 function drawInteractiveEffect() {
   push();
+  // In WEBGL, mouseX and mouseY are centered
   translate(mouseX - width / 2, mouseY - height / 2, 0);
   for (let i = 0; i < 50; i++) {
     let angle = radians((i * 360) / 50);
@@ -101,14 +119,16 @@ class Particle {
     }
   }
 
-  // Display the particle
+  // Display the particle with color based on z-depth and lifespan
   display() {
     push();
     translate(this.position.x, this.position.y, this.position.z);
-    let hue = map(this.position.z, -500, 500, 200, 360);
+    let hue = map(this.position.z, -500, 500, 200, 360); // Map z-depth to hue
     noStroke();
-    fill(hue, 255, 255, this.lifespan);
-    sphere(this.size);
+    let alpha = map(this.lifespan, 0, 400, 0, 255); // Map lifespan to alpha
+    alpha = constrain(alpha, 0, 255); // Ensure alpha is within bounds
+    fill(hue, 255, 255, alpha);
+    sphere(this.size); // Display particle as a sphere
     pop();
   }
 }

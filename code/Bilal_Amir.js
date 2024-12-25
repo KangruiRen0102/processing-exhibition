@@ -11,15 +11,15 @@ function setup() {
   for (let i = 0; i < 800; i++) {
     let x = random(width);
     let y = random(height / 2);
-    let brightness = random(100, 255);
-    stars.push(new Star(x, y, brightness));
+    let brightnessValue = random(100, 255); // 避免与系统变量 height 冲突
+    stars.push(new Star(x, y, brightnessValue));
   }
 
-  // Create plants with random positions and heights
+  // Create plants with fixed y position and random heights
   for (let i = 0; i < 15; i++) {
     let x = random(50, width - 50);
-    let height = random(50, 150);
-    plants.push(new Plant(x, height - 50, height));
+    let plantHeight = random(50, 150); // 使用 plantHeight
+    plants.push(new Plant(x, height - 50, plantHeight)); // height 这里指的是画布高度
   }
 }
 
@@ -29,12 +29,12 @@ function draw() {
   background(skyColor);
 
   // Stars fading based on timeOfDay
-  let alpha = 1 - constrain(timeOfDay, 0, 1);
-  drawAurora(alpha);
+  let alphaValue = 1 - constrain(timeOfDay, 0, 1);
+  drawAurora(alphaValue);
 
   // Display stars
   for (let star of stars) {
-    star.display(alpha);
+    star.display(alphaValue);
   }
 
   drawMoon();
@@ -49,33 +49,33 @@ function draw() {
 }
 
 class Star {
-  constructor(x, y, brightness) {
+  constructor(x, y, brightnessValue) {
     this.x = x;
     this.y = y;
-    this.brightness = brightness;
+    this.brightness = brightnessValue;
   }
 
-  display(alpha) {
-    fill(255, 255, 255, this.brightness * alpha);
+  display(alphaValue) {
+    fill(255, 255, 255, this.brightness * alphaValue);
     ellipse(this.x, this.y, 3, 3);
   }
 }
 
 class Plant {
-  constructor(x, y, height) {
+  constructor(x, y, plantHeight) { // 使用 plantHeight
     this.x = x;
     this.y = y;
-    this.height = height;
+    this.plantHeight = plantHeight; // 存储植物高度
   }
 
   display() {
     stroke(34, 139, 34);
     strokeWeight(3);
-    line(this.x, this.y, this.x, this.y - this.height);
+    line(this.x, this.y, this.x, this.y - this.plantHeight); // 使用 this.plantHeight
 
     noStroke();
     fill(34, 139, 34);
-    for (let i = 0; i < this.height; i += 20) {
+    for (let i = 0; i < this.plantHeight; i += 20) { // 使用 this.plantHeight
       ellipse(this.x - 5, this.y - i, 10, 5);
       ellipse(this.x + 5, this.y - i, 10, 5);
     }
@@ -93,7 +93,7 @@ function drawMoon() {
   ellipse(moonX + 25, moonY, 80, 80);
 }
 
-function drawAurora(alpha) {
+function drawAurora(alphaValue) {
   let colors = [
     color(0, 255, 150, 150),
     color(50, 200, 255, 100),
@@ -107,7 +107,7 @@ function drawAurora(alpha) {
     let x = map(i, 0, streakCount, 0, width);
     let noiseValue = noise(i * 0.05, auroraOffset);
     let streakHeight = map(noiseValue, 0, 1, height / 6, height / 3);
-    fill(colors[i % colors.length], alpha * 255);
+    fill(colors[i % colors.length], alphaValue * 255);
     rect(x, 0, streakWidth, streakHeight);
   }
 

@@ -18,15 +18,15 @@ let pigImg, krillImg;
 // =================== 预加载函数 ===================
 function preload() {
   // 这里统一加上“upload/”前缀
-  oceanImg   = loadImage("upload/ocean.jpg");
-  overlayImg = loadImage("upload/waves.png");
+  oceanImg   = loadImage("uploads/ocean.jpg");
+  overlayImg = loadImage("uploads/waves.png");
   
-  mouseImg1  = loadImage("upload/mouse 1.png");
-  mouseImg2  = loadImage("upload/mouse 2.png");
-  mouseImg3  = loadImage("upload/mouse 3.png");
-  mouseImg4  = loadImage("upload/mouse 4.png");
-  pigImg     = loadImage("upload/pig 1.png");
-  krillImg   = loadImage("upload/krill.png");
+  mouseImg1  = loadImage("uploads/mouse 1.png");
+  mouseImg2  = loadImage("uploads/mouse 2.png");
+  mouseImg3  = loadImage("uploads/mouse 3.png");
+  mouseImg4  = loadImage("uploads/mouse 4.png");
+  pigImg     = loadImage("uploads/pig 1.png");
+  krillImg   = loadImage("uploads/krill.png");
 }
 
 // =================== 初始化 ===================

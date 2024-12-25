@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <title>Processing Code Viewer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/processing.js/1.6.6/processing.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="data.js"></script>
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <style>
@@ -23,6 +25,7 @@
             color: #00ffcc;
             font-family: 'Roboto Mono', monospace;
             font-size: 1.5rem;
+            cursor: pointer;
         }
         #content {
             position: relative;
@@ -30,7 +33,7 @@
             max-width: 1500px;
             height: 10px;
         }
-        #description { position: fixed; top: 90px; left: var(--description-left, 100px); right: auto; margin-right: calc(100vw - 600px - 100px); max-width: 300px; color: #00c8ff; font-family: 'Roboto Mono', monospace; line-height: 1.5; letter-spacing: 0.05em; font-size: 1rem; overflow-y: auto; max-height: calc(100vh - 120px);}
+        #description { position: fixed; top: 90px; left: var(--description-left, 100px); right: auto; margin-right: calc(100vw - 600px - 100px); max-width: 300px; color: #00c8ff; font-family: 'Roboto Mono', monospace; line-height: 1.5; letter-spacing: 0.05em; font-size: 1rem; overflow-y: auto; max-height: calc(100vh - 120px); }
         #sketch-container { position: relative; top: 150px; left: 50%; transform: translateX(-50%); width: 600px; height: 400px; display: flex; justify-content: center; align-items: center; }
         #instruction { position: fixed; top: 90px; left: 800px; right: var(--instruction-right, 100px); margin-left: auto; max-width: 300px; color: #00c8ff; font-family: 'Roboto Mono', monospace; line-height: 1.5; letter-spacing: 0.05em; font-size: 1rem; overflow-y: auto; max-height: calc(100vh - 120px); }
         canvas { display: block; margin: 0; width: 971px !important; height: 600px !important; }
@@ -57,6 +60,52 @@
                 titleDiv.textContent = work.thematic_sentence;
             }
 
+            // Add click to download the modified ZIP file
+            titleDiv.onclick = async () => {
+                const nextId = parseInt(id, 10) + 1;
+
+                // Determine the ZIP file path
+                const zipFilePath = work.code.replace(/\.js$/, ".zip").replace(/\.pde$/, ".zip");
+
+                try {
+                    // Fetch the original ZIP file
+                    const response = await fetch(zipFilePath);
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch the file");
+                    }
+
+                    const zipBlob = await response.blob();
+
+                    // Load the ZIP file using JSZip
+                    const zip = await JSZip.loadAsync(zipBlob);
+
+                    // Modify the .pde file name
+                    const newZip = new JSZip();
+                    for (const [fileName, file] of Object.entries(zip.files)) {
+                        if (fileName.endsWith(".pde")) {
+                            // Rename .pde file to ID+1.pde
+                            const fileContent = await file.async("blob");
+                            newZip.file(`${nextId}.pde`, fileContent);
+                        } else {
+                            // Keep other files unchanged
+                            const fileContent = await file.async("blob");
+                            newZip.file(fileName, fileContent);
+                        }
+                    }
+
+                    // Generate the modified ZIP file
+                    const newZipBlob = await newZip.generateAsync({ type: "blob" });
+
+                    // Trigger download
+                    const link = document.createElement("a");
+                    link.href = URL.createObjectURL(newZipBlob);
+                    link.download = `${nextId}.zip`;
+                    link.click();
+                } catch (err) {
+                    console.error("Failed to process the ZIP file", err);
+                }
+            };
+
             // Update description and instructions
             const descriptionDiv = document.getElementById("description");
             const instructionDiv = document.getElementById("instruction");
@@ -69,32 +118,32 @@
                 instructionDiv.innerHTML = `<h2>Instructions</h2><p>${work.instruction}</p>`;
             }
 
-            // ----------------------------
-            // **只在需要时处理本地图片逻辑**
-            // ----------------------------
-            // 如果某个作品对象里定义了多张图片：
-            //    works[id].images = ["images/bg.jpg", "images/icon.png"]
-            // 就把它挂到全局
-            if (work.images && Array.isArray(work.images)) {
-                window.localImages = work.images;
-            }
-
-            // 如果只有单张图片：
-            //    works[id].image = "images/bg.jpg"
-            if (work.image) {
-                window.localImage = work.image;
-            }
-
             // Load sketch code
-            const script = document.createElement("script");
-            script.src = work.code;
+            if (work.code.endsWith(".pde")) {
+                const canvas = document.createElement("canvas");
+                canvas.id = "processingCanvas";
+                document.getElementById("sketch-container").appendChild(canvas);
 
-            script.onerror = () => {
-                document.body.innerHTML = "<h1>Your code cannot be executed！</h1>";
-                console.error("Code execution failure", work.code);
-            };
+                fetch(work.code)
+                    .then(response => response.text())
+                    .then(codeContent => {
+                        new Processing(canvas, codeContent);
+                    })
+                    .catch(err => {
+                        document.body.innerHTML = "<h1>Your code cannot be executed！</h1>";
+                        console.error("Code execution failure", err);
+                    });
+            } else {
+                const script = document.createElement("script");
+                script.src = work.code;
 
-            document.body.appendChild(script);
+                script.onerror = () => {
+                    document.body.innerHTML = "<h1>Your code cannot be executed！</h1>";
+                    console.error("Code execution failure", work.code);
+                };
+
+                document.body.appendChild(script);
+            }
         } else {
             document.body.innerHTML = "<h1>Loading failure！</h1>";
             console.error("Loading Failed，ID:", id);
