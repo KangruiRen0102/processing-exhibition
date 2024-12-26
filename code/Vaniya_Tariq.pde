@@ -18,6 +18,11 @@ void setup() {
 
   color uniqueColor = color(0, 0, 255); // index for the colour blue
   fishSchool.add(new Fish(random(width), random(height), uniqueColor, 12)); // add to array
+  
+  color specialColor = color(255, 223, 0); // index for the colour yellow
+  for (int i = 0; i < 5; i++) {  // add multiple yellow fish
+    fishSchool.add(new Fish(random(width), random(height), specialColor, 10));
+  }
 }
 // function for the background and sea flow 
 void draw() {
@@ -68,6 +73,27 @@ void draw() {
   }
 }
 
+// check for mouse interaction with the blue fish and yellow fish
+void mousePressed() {
+  for (Fish fish : fishSchool) { 
+    // find the blue fish and check if the mouse is near its position
+    if (fish.fishColor == color(0, 0, 255)) {
+      float distance = dist(mouseX, mouseY, fish.position.x, fish.position.y);
+      if (distance < fish.size * 1.5) {  // checking click proximity
+        fish.size *= 2;  // double its size
+      }
+    }
+
+    // find the yellow fish and check if the mouse is near its position
+    if (fish.fishColor == color(255, 223, 0)) {
+      float distance = dist(mouseX, mouseY, fish.position.x, fish.position.y);
+      if (distance < fish.size * 1.5) {  // checking click proximity
+        fish.fishColor = color(255, 0, 0);  // change color to red
+      }
+    }
+  }
+}
+
 // Our First class for the Fish school
 class Fish {
   PVector position;   // each fish instance will get a position attribute
@@ -79,7 +105,7 @@ class Fish {
   // so they can have their own x and y coordinates, but floats not ints
   Fish(float x, float y, color c, float s) {
     position = new PVector(x, y);
-    velocity = new PVector(random(-2, 2), random(-1, 1)); // velocity is random 
+    velocity = new PVector(random(-1.5, 1.5), random(-0.75, 0.75)); // velocity is slower 
     size = s;
     fishColor = c;
   }
@@ -100,7 +126,7 @@ class Fish {
     float angle = noise(position.x * noiseFactor, position.y * noiseFactor, frameCount * 0.01) * TWO_PI;
     PVector flowDirection = flow.copy().rotate(angle).normalize().mult(0.5);
     velocity.add(flowDirection);
-    velocity.limit(2); // so the fish dont travel too fast relative to ocean waves
+    velocity.limit(1.5); // slower fish relative to ocean waves
   }
 
   // adding scales and eyeballs 
