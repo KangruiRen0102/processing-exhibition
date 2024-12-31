@@ -98,14 +98,14 @@
 
             const img = document.createElement("img");
             img.src = work.image;
-            img.alt = work.name;
+            img.alt = index + 1;
             img.onclick = () => {
-                window.location.href = `view.html?id=${index}`;
+                window.location.href = view.html?id=${index};
             };
 
             const authorDiv = document.createElement("div");
             authorDiv.className = "author";
-            authorDiv.textContent = work.name; // 使用作者名字替代 ID
+            authorDiv.textContent = index + 1;
 
             let textIndex = 0;
             let textInterval;
@@ -142,4 +142,4 @@
         });
     </script>
 </body>
-</html>
+</html> 
